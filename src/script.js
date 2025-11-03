@@ -18,16 +18,22 @@ function inputHandler(event) {
             inputBuffer.pop();
             return;
         }
-        else if (event.key === 'Space') {
+        else if (event.key === ' ' || event.code === 'Space') {
             if (inputBuffer.length <= 0) return;
-            let spaceSeparated = inputBuffer.join() + " ";
+            let spaceSeparated = inputBuffer.join();
             inputBuffer.push(spaceSeparated);
         }
     }
 
     inputBuffer.push(event.key);
 }
-e
+
+function renderTyped() {
+    const el = document.getElementById('typed');
+    if (!el) return;
+    el.textContent = inputBuffer.join('');
+}
+
 
 function generateText(wordCount = 50) {
     let textBuffer = [];
@@ -40,12 +46,9 @@ function generateText(wordCount = 50) {
 
 function startGame() {
     const wordInput = document.getElementById('word-count');
-    if (wordInput.value instanceof Number == false) {
-        alert("Solo numeros permitidos");
-        return;
-    }
-    else if (wordInput.value == null) {
-        alert("Solo numeros permitidos");
+    const count = parseInt(wordInput.value, 10);
+    if (!Number.isInteger(count) || count <= 0) {
+        alert("Solo números permitidos, mayor que 0");
         return;
     }
 
@@ -63,3 +66,12 @@ console.log(generateText())
 
 
 document.addEventListener('keydown', inputHandler);
+
+
+// me quede en lo de Only push printable keys into inputBuffer (guard with if (event.key.length === 1)).
+// esta al final del 2.inputHandler(event)
+
+// Summary of inputHandler issues and fixes:
+//Detect Space with (event.key === ' ' || event.code === 'Space').
+//Use inputBuffer.join('') to build the typed string (no commas).
+//Only push printable keys into inputBuffer (guard with if (event.key.length === 1)).
