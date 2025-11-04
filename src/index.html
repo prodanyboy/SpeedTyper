@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
-
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>SpeedTyper</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-    <h1 class="header">SpeedTyper</h1>
-    <h2 class="body">Con este programa vamos a poder medir la velocidad de escritura tanto en inglés como en español</h2>
-    <div class="menu-content">
-        <input type="text" id="word-count">
-        <button onclick="startGame()">Start Game</button>
-    </div>
-    <div class="hidden game-content">
-        <p id="typed"></p>
-        <button onclick="endGame()">End Game</button>
-    </div>
-</body>
+    <main style="max-width:1000px;margin:24px auto;padding:12px;">
+        <h1 class="header">SpeedTyper</h1>
+        <h2 class="body">Mide tu velocidad de escritura — introduce cuántas palabras quieres practicar</h2>
 
+        <section class="menu-content" aria-hidden="false">
+            <input id="word-count" type="number" min="1" placeholder="Número de palabras (ej. 30)" />
+            <button id="start-btn" onclick="startGame()">Start Game</button>
+        </section>
+
+        <section class="game-content hidden" aria-hidden="true">
+            <p id="typed"></p>
+            <!-- dynamic controls and results are injected by script.js -->
+            <div style="height:18px"></div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
 </html>
