@@ -1,38 +1,29 @@
 "use strict";
 
-// SpeedTyper — enhanced typing test behavior implemented purely in script.js
-// - Uses the existing HTML structure in src/index.html
-// - Dynamically renders the text as per-character spans and handles keyboard input
-// - Allows backspace to correct; tracks total mistakes (keystrokes) and uncorrected mistakes (final)
-// - Shows live WPM and final results with restart flow
 
-// --- Configuration ---
 const words = [
     'rápido','casa','teclado','programa','prueba','velocidad','palabra','usuario',
     'práctica','error','correcto','pantalla','ordenador','código','evento','entrada',
     'memoria','texto','sesión','tiempo','juego','tipo','espacio','borrar','carácter'
 ];
 
-// --- State ---
 let text = "";
-let chars = []; // array of characters from text
-let status = []; // 'untyped' | 'correct' | 'incorrect'
+let chars = []; 
+let status = []; 
 let currentIndex = 0;
 let isPlaying = false;
 let startTime = 0;
 let timerInterval = null;
 
-let correctCount = 0;        // number of chars currently marked correct
-let totalMistakeKeystrokes = 0; // total wrong key presses (includes ones later corrected)
-let uncorrectedMistakes = 0; // number of chars currently marked incorrect
+let correctCount = 0;        
+let totalMistakeKeystrokes = 0;
+let uncorrectedMistakes = 0; 
 
-// --- DOM refs (existing elements) ---
 const wordInput = document.getElementById('word-count');
 const menuContent = document.querySelector('.menu-content');
 const gameContent = document.querySelector('.game-content');
 const typedEl = document.getElementById('typed');
 
-// Inject minimal required CSS so color classes exist even if style.css is minimal
 (function injectStyles() {
     const css = `
     .typed-container { font-family: monospace; font-size: 28px; line-height: 1.6; color: #bbb; max-width: 900px; text-align:left; padding: 20px; background: #222; border-radius: 8px; }
@@ -50,20 +41,16 @@ const typedEl = document.getElementById('typed');
     document.head.appendChild(style);
 })();
 
-// Create some dynamic UI inside .game-content (so we don't need to modify HTML file)
 (function buildGameUI() {
     if (!gameContent) return;
     gameContent.classList.add('hidden');
 
-    // container to render text
     const container = document.createElement('div');
     container.className = 'typed-container';
     container.id = 'typed-container';
-    typedEl.replaceWith(container); // replace existing <p id="typed"> with our container
-    // keep reference
+    typedEl.replaceWith(container)
     window.typedContainer = container;
 
-    // controls row (end button will still exist but we'll add our own)
     const controls = document.createElement('div');
     controls.className = 'controls';
     controls.innerHTML = `
@@ -72,17 +59,14 @@ const typedEl = document.getElementById('typed');
     `;
     gameContent.appendChild(controls);
 
-    // results area (hidden until done)
     const results = document.createElement('div');
     results.className = 'results hidden';
     results.id = 'results';
     gameContent.appendChild(results);
 
-    // restart button will be added into results when game finishes
     document.getElementById('end-btn').addEventListener('click', endGame);
 })();
 
-// Helpers
 function generateText(wordCount = 50) {
     const buf = [];
     for (let i = 0; i < wordCount; i++) {
@@ -94,7 +78,7 @@ function generateText(wordCount = 50) {
 
 function renderText() {
     const container = document.getElementById('typed-container');
-    container.innerHTML = ''; // clear
+    container.innerHTML = ''; 
     chars = text.split('');
     status = new Array(chars.length).fill('untyped');
     currentIndex = 0;
@@ -106,12 +90,10 @@ function renderText() {
         const span = document.createElement('span');
         span.className = 'char';
         span.dataset.index = idx;
-        // preserve spaces visually
         span.textContent = ch === ' ' ? '\u00A0' : ch;
         container.appendChild(span);
     });
 
-    // mark current char
     markCurrent();
 }
 
@@ -127,7 +109,7 @@ function updateWpmDisplay() {
     const wpmEl = document.getElementById('wpm');
     if (!wpmEl) return;
     const now = Date.now();
-    const minutes = Math.max((now - startTime) / 60000, 1/60000); // avoid div by 0
+    const minutes = Math.max((now - startTime) / 60000, 1/60000);
     const wpm = Math.round((correctCount / 5) / minutes);
     wpmEl.textContent = `WPM: ${isFinite(wpm) ? wpm : 0}`;
 }
@@ -137,14 +119,12 @@ function finishGame() {
     clearInterval(timerInterval);
     updateWpmDisplay();
 
-    // compute stats
     const totalChars = chars.length;
     const accuracy = Math.round((correctCount / totalChars) * 100) || 0;
     const now = Date.now();
     const minutes = Math.max((now - startTime) / 60000, 1/60000);
     const finalWpm = Math.round((correctCount / 5) / minutes);
 
-    // show results
     const results = document.getElementById('results');
     results.classList.remove('hidden');
     results.innerHTML = `
@@ -157,35 +137,27 @@ function finishGame() {
     `;
 
     document.getElementById('restart-btn').addEventListener('click', () => {
-        // reset UI and show menu again
         results.classList.add('hidden');
         document.querySelector('.game-content').classList.add('hidden');
         document.querySelector('.menu-content').classList.remove('hidden');
-        // clear typed container
         const container = document.getElementById('typed-container');
         container.innerHTML = '';
-        // reset WPM
         const wpmEl = document.getElementById('wpm');
         if (wpmEl) wpmEl.textContent = 'WPM: 0';
     });
 }
 
-// --- Input handling ---
 function handleKeydown(event) {
     if (!isPlaying) return;
-    // ignore modifier combos
     if (event.ctrlKey || event.metaKey || event.altKey) return;
 
     const key = event.key;
 
-    // handle backspace
     if (key === 'Backspace') {
         if (currentIndex === 0) return;
-        // move back
         currentIndex--;
         const prevSpan = document.querySelector(`.typed-container .char[data-index="${currentIndex}"]`);
         const prevStatus = status[currentIndex];
-        // if previously incorrect, reduce uncorrected mistakes
         if (prevStatus === 'incorrect') {
             uncorrectedMistakes = Math.max(0, uncorrectedMistakes - 1);
         } else if (prevStatus === 'correct') {
@@ -199,24 +171,19 @@ function handleKeydown(event) {
         return;
     }
 
-    // only process printable single-character keys (including space)
     if (key.length !== 1) return;
 
-    // if at end, ignore further printable keys
     if (currentIndex >= chars.length) return;
 
     const expected = chars[currentIndex];
     const span = document.querySelector(`.typed-container .char[data-index="${currentIndex}"]`);
 
     if (key === expected) {
-        // correct
         status[currentIndex] = 'correct';
         span.classList.remove('incorrect');
         span.classList.add('correct');
         correctCount++;
     } else {
-        // incorrect
-        // mark incorrect (if it was previously untyped)
         if (status[currentIndex] !== 'incorrect') {
             uncorrectedMistakes++;
         }
@@ -230,13 +197,11 @@ function handleKeydown(event) {
     markCurrent();
     updateWpmDisplay();
 
-    // check for completion
     if (currentIndex >= chars.length) {
         finishGame();
     }
 }
 
-// --- Public control functions (used by inline button in HTML) ---
 function startGame() {
     const count = parseInt(wordInput.value, 10);
     if (!Number.isInteger(count) || count <= 0) {
@@ -253,29 +218,22 @@ function startGame() {
 
     isPlaying = true;
     startTime = Date.now();
-    // update WPM periodically (also updated on every keydown)
     timerInterval = setInterval(updateWpmDisplay, 800);
-    // focus so keydown works
     window.focus();
-    // ensure results hidden
     const results = document.getElementById('results');
     if (results) results.classList.add('hidden');
 }
 
 function endGame() {
     if (!isPlaying) {
-        // show menu if game not active
         document.querySelector('.game-content').classList.add('hidden');
         document.querySelector('.menu-content').classList.remove('hidden');
         return;
     }
-    // force finish
     finishGame();
 }
 
-// Attach global keydown handler
 document.addEventListener('keydown', handleKeydown);
 
-// Expose startGame/endGame globally so existing HTML onclick works
 window.startGame = startGame;
 window.endGame = endGame;
