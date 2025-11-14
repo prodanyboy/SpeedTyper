@@ -2,9 +2,9 @@
 
 
 const words = [
-    'rápido','casa','teclado','programa','prueba','velocidad','palabra','usuario',
-    'práctica','error','correcto','pantalla','ordenador','código','evento','entrada',
-    'memoria','texto','sesión','tiempo','juego','tipo','espacio','borrar','carácter'
+    'rapido','casa','teclado','programa','prueba','velocidad','palabra','usuario',
+    'practica','error','correcto','pantalla','ordenador','codigo','evento','entrada',
+    'memoria','texto','sesion','tiempo','juego','tipo','espacio','borrar','caracter'
 ];
 
 let text = "";
@@ -26,8 +26,8 @@ const typedEl = document.getElementById('typed');
 
 (function injectStyles() {
     const css = `
-    .typed-container { font-family: monospace; font-size: 28px; line-height: 1.6; color: #bbb; max-width: 900px; text-align:left; padding: 20px; background: #222; border-radius: 8px; }
-    .typed-container .char { color: #bbbbbb; padding: 0 1px; white-space: pre; }
+    .typed-container { font-family: monospace; font-size: 28px; line-height: 1.6; color: #bbb; max-width: 900px; text-align:left; padding: 20px; background: #222; border-radius: 8px; max-height: 260px; overflow: auto; white-space: normal; }
+    .typed-container .char { color: #bbbbbb; padding: 0 1px; display: inline; }
     .typed-container .char.current { text-decoration: underline; color: #fff; }
     .typed-container .char.correct { color: #fff; }
     .typed-container .char.incorrect { color: #ff6b6b; }
@@ -90,7 +90,8 @@ function renderText() {
         const span = document.createElement('span');
         span.className = 'char';
         span.dataset.index = idx;
-        span.textContent = ch === ' ' ? '\u00A0' : ch;
+        // render actual space so spans keep layout and scrolling works reliably
+        span.textContent = ch;
         container.appendChild(span);
     });
 
@@ -103,6 +104,19 @@ function markCurrent() {
 
     const node = document.querySelector(`.typed-container .char[data-index="${currentIndex}"]`);
     if (node) node.classList.add('current');
+
+    // ensure the current character (and therefore the current word) is visible
+    ensureCurrentVisible();
+}
+
+function ensureCurrentVisible() {
+    const container = document.getElementById('typed-container');
+    const node = document.querySelector(`.typed-container .char[data-index="${currentIndex}"]`);
+    if (!container || !node) return;
+
+    // If node is outside visible bounds, scroll it into view inside the container.
+    // Use nearest to avoid jumping too far; let the browser decide best placement.
+    node.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
 }
 
 function updateWpmDisplay() {
